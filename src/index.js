@@ -1,7 +1,7 @@
 const helper = require('./helper');
 const config = require('./config');
 const Telegraf = require('telegraf');
-//const server = require('./server');
+const server = require('./server');
 
 const bot = new Telegraf(config.TOKEN);
 bot.start((ctx) => ctx.reply('Welcome'));

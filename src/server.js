@@ -5,7 +5,7 @@ const config = require('./config');
 const org = nforce.createConnection({
     clientId: config.CONSUMER_KEY,
     clientSecret: config.CONSUMER_SECRECT,
-    redirectUri: 'https://stormy-wave-90920.herokuapp.com/',
+    redirectUri: 'https://stormy-wave-90920.herokuapp.com/oauth/_callback',
     environment: "production",
     mode: "single"
 
