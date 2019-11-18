@@ -8,8 +8,8 @@ const org = nforce.createConnection({
     clientId: config.CONSUMER_KEY,
     clientSecret: config.CONSUMER_SECRECT,
     redirectUri: 'https://stormy-wave-90920.herokuapp.com/',
-    environment: "production",
-    mode: "single"
+    environment: 'production',
+    mode: 'single'
 
 });
 

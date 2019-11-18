@@ -10,8 +10,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "telegraf": "^3.33.3",
-    "nforce": ""
+    "nforce": "^1.12.2",
+    "telegraf": "^3.33.3"
   },
   "devDependencies": {
     "nodemon": "^1.19.4"
