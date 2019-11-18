@@ -1,7 +1,6 @@
 {
   "name": "telegram_bot_task3-1",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "start": "node ./src/index.js",
@@ -11,9 +10,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "telegraf": "^3.33.3"
+    "telegraf": "^3.33.3",
+    "nforce": ""
   },
   "devDependencies": {
     "nodemon": "^1.19.4"
-  }
+  },
+  "description": ""
 }
