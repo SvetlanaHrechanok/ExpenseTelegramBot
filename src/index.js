@@ -131,4 +131,4 @@ async function startup() {
 startup();
 
 
-setInterval(helper.getHttp(), 900000);
+//setInterval(helper.getHttp, 900000);
