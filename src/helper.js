@@ -28,10 +28,10 @@ module.exports = {
     },
     getHttp() {
         http.get('http://psk-tgbot.herokuapp.com/');
-        org.authenticate({ username: orgUserName, password: orgPassword, securityToken: securityToken}, function(err, resp){
+        org.authenticate({ username: config.salesforce.SFUSER, password: config.salesforce.SFPASS, securityToken: config.salesforce.SECURITY_TOKEN }, function(err, resp){
             if(!err) {
                 oauth = resp;
-                console.log('Connection complete');
+                console.log('Connection is completed');
             } else {
                 console.log('Error: ' + err.message);
             }
