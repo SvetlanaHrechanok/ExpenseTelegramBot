@@ -46,11 +46,11 @@ stage.register(expenseCardDesc);
 stage.register(newExpenseCard);
 
 bot.start((ctx) => {
-    ctx.reply(`Welcome, ${ctx.from.first_name}`)
+    return ctx.reply(`Welcome, ${ctx.from.first_name}`)
         .then(() => ctx.scene.enter('userLogin'));
 });
 bot.command('exit', (ctx) => {
-    ctx.reply(`Good bay, ${ctx.from.first_name}`)
+    return ctx.reply(`Good bay, ${ctx.from.first_name}`)
         .then(() => leave());
 });
 
@@ -87,10 +87,10 @@ userPassword.on('text',async (ctx) => {
             state[userId] = { id : userId };
             state[userId].contactId = contact.id;
             state[userId].name = contact.name;
-            ctx.reply(`Authorization was successful!`)
+            return ctx.reply(`Authorization was successful!`)
                 .then(() => ctx.scene.enter('mainMenu'));
         } else {
-            ctx.reply('Invalid login or password!!!\nTry again!')
+            return ctx.reply('Invalid login or password!!!\nTry again!')
                 .then(() => ctx.scene.enter('userLogin'));
         }
     });
@@ -121,7 +121,7 @@ mainMenu.on('callback_query', (ctx) => {
                     amount += monthlyExpense.spentamount__c;
                 });
                 let balance = income - amount;
-                ctx.reply('Your current balance: $' + balance.toFixed(2) + '. Today ' + helper.formatDate(current_date))
+                return ctx.reply('Your current balance: $' + balance.toFixed(2) + '. Today ' + helper.formatDate(current_date))
                     .then(() => ctx.scene.enter('mainMenu'));
             });
             break;
@@ -190,7 +190,7 @@ newExpenseCard.hears(/^\d*([.,]\d*)?$/, (ctx) => {
         expenseCard.set('Name', `${helper.formatDate(state[ctx.from.id].date)}_${state[ctx.from.id].name}`);
     conectOrgSF.insert({sobject: expenseCard},async function (err, resp) {
         if (!err) {
-            ctx.reply(`Expense Card was created!\nDate: ${helper.formatDate(state[ctx.from.id].date)}, amount: ${amount}, description: ${state[ctx.from.id].description}`)
+            return ctx.reply(`Expense Card was created!\nDate: ${helper.formatDate(state[ctx.from.id].date)}, amount: ${amount}, description: ${state[ctx.from.id].description}`)
                 .then(ctx.scene.enter('mainMenu'));
         } else {
             ctx.reply('Error: ' + err.message);
