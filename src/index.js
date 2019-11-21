@@ -16,6 +16,7 @@ const mainMenu = new Scene('mainMenu');
 const subMenu = new Scene('subMenu');
 const expenseCardDesc = new Scene('expenseCardDesc');
 const newExpenseCard = new Scene('newExpenseCard');
+const newIncome = new Scene('newIncome');
 //bot
 const bot = new Telegraf(config.bot.TOKEN, {webhookReply: false});
 
@@ -43,6 +44,7 @@ stage.register(mainMenu);
 stage.register(subMenu);
 stage.register(expenseCardDesc);
 stage.register(newExpenseCard);
+stage.register(newIncome);
 
 bot.start(async (ctx) => {
     return ctx.reply(`Welcome, ${ctx.from.first_name}`)
@@ -149,7 +151,7 @@ subMenu.on('callback_query', (ctx) => {
     switch (button) {
         case 'Today':
             state[ctx.from.id].date = new Date();
-            ctx.scene.enter('expenseCardDesc');
+            state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
             break;
         case 'Date':
             const calendar = new Calendar(bot, {
@@ -162,7 +164,7 @@ subMenu.on('callback_query', (ctx) => {
             return ctx.reply(`Select date from the calendar:`, calendar.getCalendar());
             calendar.setDateListener((ctx, date) => {
                 state[ctx.from.id].date = date;
-                ctx.scene.enter('expenseCardDesc');
+                state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
             });
             break;
         case 'Back':
@@ -186,12 +188,14 @@ newExpenseCard.enter((ctx) => {
 });
 newExpenseCard.hears(/^\d*([.,]\d*)?$/, async (ctx) => {
     let amount = parseFloat(ctx.message.text.replace(/,/, '.')).toFixed(2);
-    let expenseCard = nforce.createSObject('ExpenseCard__c');
-        expenseCard.set('CardDate__c', state[ctx.from.id].date);
-        expenseCard.set('Amount__c', amount);
-        expenseCard.set('Description__c', state[ctx.from.id].description);
-        expenseCard.set('CardKeeper__c', state[ctx.from.id].contactId);
-        expenseCard.set('Name', `${helper.formatDate(state[ctx.from.id].date)}_${state[ctx.from.id].name}`);
+    let expenseCard = nforce.createSObject('ExpenseCard__c',{
+        cardDate__c: state[ctx.from.id].date,
+        amount__c: amount,
+        description__c: state[ctx.from.id].description,
+        cardKeeper__c: state[ctx.from.id].contactId,
+        name: `${helper.formatDate(state[ctx.from.id].date)}_${state[ctx.from.id].name}`
+    });
+
     conectOrgSF.insert({sobject: expenseCard},async function(err, resp) {
         if (!err) {
             return ctx.reply(`Expense Card was created!\nDate: ${helper.formatDate(state[ctx.from.id].date)}, amount: ${amount}, description: ${state[ctx.from.id].description}`)
@@ -203,6 +207,57 @@ newExpenseCard.hears(/^\d*([.,]\d*)?$/, async (ctx) => {
 });
 newExpenseCard.on('message', (ctx) => {
     return ctx.reply(`Enter number for amount:`);
+});
+
+//newIncome scene
+newIncome.enter((ctx) => {
+    return ctx.reply(`Enter balance:`);
+});
+newIncome.hears(/^\d*([.,]\d*)?$/, async (ctx) => {
+    let balance = parseFloat(ctx.message.text.replace(/,/, '.')).toFixed(2);
+    let query = `SELECT Id, Balance__c, SpentAmount__c, MonthDate__c, Keeper__c, Reminder__c
+                    FROM MonthlyExpense__c WHERE Keeper__c = '${state[ctx.from.id].contactId}'
+                    AND CALENDAR_YEAR(MonthDate__c) = ${state[ctx.from.id].date.getFullYear()} 
+                    AND CALENDAR_MONTH(MonthDate__c) = ${state[ctx.from.id].date.getMonth()+1} ORDER BY MonthDate__c ASC`;
+    conectOrgSF.query({ query: query }, async (err, resp) => {
+        let listMonthlyExpenses = JSON.parse(JSON.stringify(resp.records));
+        if (listMonthlyExpenses.length == 0) {
+            let monthlyExpense = nforce.createSObject('MonthlyExpense__c',{
+                name: helper.formatDate(state[ctx.from.id].date) + '_' + state[ctx.from.id].name,
+                balance__c: balance,
+                monthDate__c: state[ctx.from.id].date,
+                keeper__c: state[ctx.from.id].contactId
+            });
+            conectOrgSF.insert({sobject: monthlyExpense}, async function (err, resp) {
+                if (!err) {
+                    return ctx.reply(`Income was created!\nDate: ${helper.formatDate(state[ctx.from.id].date)}, balance: ${balance}`)
+                        .then(ctx.scene.enter('mainMenu'));
+                } else {
+                    return ctx.reply('Error: ' + err.message);
+                }
+            });
+        } else {
+            let newBalance = listMonthlyExpenses[0].balance__c + (+balance); //+before string parse to number
+            let monthlyExpense = nforce.createSObject('MonthlyExpense__c',{
+                id: listMonthlyExpenses[0].id,
+                name: listMonthlyExpenses[0].name,
+                balance__c: newBalance,
+                monthDate__c: listMonthlyExpenses[0].monthDate__c,
+                keeper__c: listMonthlyExpenses[0].keeper__c
+            });
+            conectOrgSF.update({sobject: monthlyExpense}, async function (err, resp) {
+                if (!err) {
+                    return ctx.reply(`Income was updated!\nBalance: ${newBalance}`)
+                        .then(ctx.scene.enter('mainMenu'));
+                } else {
+                    return ctx.reply('Error: ' + err.message);
+                }
+            });
+        }
+    });
+});
+newIncome.on('message', (ctx) => {
+    return ctx.reply(`Enter number for balance:`);
 });
 
 bot.help((ctx) => ctx.reply('Send me a sticker'));
