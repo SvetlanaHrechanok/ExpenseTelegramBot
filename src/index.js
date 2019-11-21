@@ -31,7 +31,6 @@ conectOrgSF.authenticate({ username: config.salesforce.SFUSER, password: config.
     }
 });
 
-
 bot.telegram.setWebhook(`${config.heroku.URL}bot${config.bot.TOKEN}`);
 bot.startWebhook(`/bot${config.bot.TOKEN}`, null, port);
 bot.use(session());
@@ -65,28 +64,27 @@ bot.catch((err, ctx) => {
 
 //userLogin scene
 userLogin.enter((ctx) => {
-    ctx.reply(`Enter your login: `);
+    return ctx.reply(`Enter your login: `);
 });
 userLogin.on('text', (ctx) => {
-    ctx.session.login = ctx.message.text;
+    state[ctx.from.id] = { id : ctx.from.id };
+    state[ctx.from.id].login = ctx.message.text;
     ctx.scene.enter('userPassword');
 });
 
 //userPassword scene
 userPassword.enter((ctx) => {
-    ctx.reply(`Enter your password: `);
+    return ctx.reply(`Enter your password: `);
 });
 userPassword.on('text', async (ctx) => {
-    ctx.session.password = ctx.message.text;
-    const userId = ctx.message.from.id;
+    state[ctx.from.id].password = ctx.message.text;
     let query = `SELECT Id, Name, Email FROM Contact 
-                    WHERE Email = '${ctx.session.login}' AND Password__c = '${ctx.session.password}'`;
+                    WHERE Email = '${state[ctx.from.id].login}' AND Password__c = '${state[ctx.from.id].password}'`;
     conectOrgSF.query({ query: query }, async (err, resp) => {
         if (!err && resp.records.length != 0) {
             let contact = JSON.parse(JSON.stringify(resp.records[0]));
-            state[userId] = { id : userId };
-            state[userId].contactId = contact.id;
-            state[userId].name = contact.name;
+            state[ctx.from.id].contactId = contact.id;
+            state[ctx.from.id].name = contact.name;
             return ctx.reply(`Authorization was successful!`)
                 .then(() => ctx.scene.enter('mainMenu'));
         } else {
@@ -98,7 +96,7 @@ userPassword.on('text', async (ctx) => {
 
 //mainMenu scene
 mainMenu.enter((ctx) => {
-    ctx.reply(`${state[ctx.from.id].name}, select action:`,
+    return ctx.reply(`${state[ctx.from.id].name}, select action:`,
         Markup.inlineKeyboard([
             Markup.callbackButton(`Current Balance`,  `Balance`),
             Markup.callbackButton(`Create Card`, `Card`)
@@ -133,7 +131,7 @@ mainMenu.on('callback_query', async (ctx) => {
 
 //sumMenu scene
 subMenu.enter((ctx) => {
-    ctx.reply(`${state[ctx.from.id].name}, Create expense card:`,
+    return ctx.reply(`${state[ctx.from.id].name}, Create expense card:`,
         Markup.inlineKeyboard([
             Markup.callbackButton(`for today`,  `Today`),
             Markup.callbackButton(`for date`, `Date`),
@@ -155,7 +153,7 @@ subMenu.on('callback_query', (ctx) => {
                 minDate: new Date(2017, 0, 1),
                 maxDate: new Date()
             });
-            ctx.reply(`Select date from the calendar:`, calendar.getCalendar());
+            return ctx.reply(`Select date from the calendar:`, calendar.getCalendar());
             calendar.setDateListener((ctx, date) => {
                 state[ctx.from.id].date = date;
                 ctx.scene.enter('expenseCardDesc');
@@ -169,7 +167,7 @@ subMenu.on('callback_query', (ctx) => {
 
 //expenseCardDesc scene
 expenseCardDesc.enter((ctx) => {
-    ctx.reply(`Enter description for this expense card:`);
+    return ctx.reply(`Enter description for this expense card:`);
 });
 expenseCardDesc.on('message', (ctx) => {
     state[ctx.from.id].description = ctx.message.text;
@@ -178,7 +176,7 @@ expenseCardDesc.on('message', (ctx) => {
 
 //newExpenseCard scene
 newExpenseCard.enter((ctx) => {
-    ctx.reply(`Enter amount for this expense card:`);
+    return ctx.reply(`Enter amount for this expense card:`);
 });
 newExpenseCard.hears(/^\d*([.,]\d*)?$/, async (ctx) => {
     let amount = parseFloat(ctx.message.text.replace(/,/, '.')).toFixed(2);
@@ -188,7 +186,7 @@ newExpenseCard.hears(/^\d*([.,]\d*)?$/, async (ctx) => {
         expenseCard.set('Description__c', state[ctx.from.id].description);
         expenseCard.set('CardKeeper__c', state[ctx.from.id].contactId);
         expenseCard.set('Name', `${helper.formatDate(state[ctx.from.id].date)}_${state[ctx.from.id].name}`);
-    conectOrgSF.insert({sobject: expenseCard},async function (err, resp) {
+    conectOrgSF.insert({sobject: expenseCard},async function(err, resp) {
         if (!err) {
             return ctx.reply(`Expense Card was created!\nDate: ${helper.formatDate(state[ctx.from.id].date)}, amount: ${amount}, description: ${state[ctx.from.id].description}`)
                 .then(ctx.scene.enter('mainMenu'));
@@ -198,7 +196,7 @@ newExpenseCard.hears(/^\d*([.,]\d*)?$/, async (ctx) => {
     });
 });
 newExpenseCard.on('message', (ctx) => {
-    ctx.reply(`Enter number for amount:`);
+    return ctx.reply(`Enter number for amount:`);
 });
 
 bot.help((ctx) => ctx.reply('Send me a sticker'));
@@ -209,8 +207,5 @@ async function startup() {
     await bot.launch();
     console.log(new Date(), 'Bot started as', bot.options.username);
 };
-
 startup();
-
-
 setInterval(helper.getHttp, 900000);
