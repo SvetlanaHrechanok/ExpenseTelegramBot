@@ -235,9 +235,10 @@ stage.register(expenseCardDesc);
 stage.register(newExpenseCard);
 stage.register(newIncome);
 
-stage.command('start', (ctx) => {
+stage.command('start', async (ctx) => {
     leave();
-    ctx.scene.enter('userLogin');
+    return ctx.reply(`Welcome, ${ctx.from.first_name}`)
+        .then(() => ctx.scene.enter('userLogin'));
 });
 
 stage.command('exit', async (ctx) => {
