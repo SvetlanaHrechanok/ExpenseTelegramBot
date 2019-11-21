@@ -12,7 +12,8 @@
   "dependencies": {
     "http": "0.0.0",
     "nforce": "^1.12.2",
-    "telegraf": "^3.33.3"
+    "telegraf": "^3.33.3",
+    "telegraf-calendar-telegram": "^1.5.7"
   },
   "devDependencies": {
     "nodemon": "^1.19.4"

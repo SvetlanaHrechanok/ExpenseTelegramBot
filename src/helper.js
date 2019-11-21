@@ -21,17 +21,15 @@ module.exports = {
         if (dd < 10) dd = '0' + dd;
         let mm = date.getMonth() + 1;
         if (mm < 10) mm = '0' + mm;
-        let yy = date.getFullYear() % 100;
-        if (yy < 10) yy = '0' + yy;
+        let yyyy = date.getFullYear();
 
-        return dd + '.' + mm + '.' + yy;
+        return yyyy + '-' + mm + '-' + dd;
     },
     getHttp() {
-        http.get('http://psk-tgbot.herokuapp.com/');
+        http.get(config.heroku.URL);
         org.authenticate({ username: config.salesforce.SFUSER, password: config.salesforce.SFPASS, securityToken: config.salesforce.SECURITY_TOKEN }, function(err, resp){
             if(!err) {
-                oauth = resp;
-                console.log('Connection is completed');
+                console.log('Success connection');
             } else {
                 console.log('Error: ' + err.message);
             }
