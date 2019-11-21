@@ -20,7 +20,7 @@ const newIncome = new Scene('newIncome');
 //bot
 const bot = new Telegraf(config.bot.TOKEN, {webhookReply: false});
 
-let port = config.http || config.https,
+let port = process.env.PORT || config.http || config.https,
     state = {},
     conectOrgSF = helper.conectOrg;
 
