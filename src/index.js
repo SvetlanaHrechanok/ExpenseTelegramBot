@@ -55,13 +55,18 @@ bot.command('exit', async (ctx) => {
         .then(() => leave());
 });
 
+bot.catch((err, ctx) => {
+    console.log(`Ooops, ecountered an error for ${ctx.updateType}`, err)
+});
+
 stage.command('start', async (ctx) => {
     leave()
         .then(() => ctx.scene.enter('userLogin'));
 });
 
-bot.catch((err, ctx) => {
-    console.log(`Ooops, ecountered an error for ${ctx.updateType}`, err)
+stage.command('exit', async (ctx) => {
+    return ctx.reply(`Good bay, ${ctx.from.first_name}`)
+        .then(() => leave());
 });
 
 //userLogin scene
