@@ -1,6 +1,6 @@
 const config = require('./config');
 const nforce = require('nforce');
-let http = require('http');
+const http = require('http');
 
 //nforce setup to connect Salesforce
 const org = nforce.createConnection({
@@ -26,7 +26,7 @@ module.exports = {
         return yyyy + '-' + mm + '-' + dd;
     },
     getHttp() {
-        http.get(config.heroku.URL);
+        http.get(`http://stormy-wave-90920.herokuapp.com/`);
         org.authenticate({ username: config.salesforce.SFUSER, password: config.salesforce.SFPASS, securityToken: config.salesforce.SECURITY_TOKEN }, function(err, resp){
             if(!err) {
                 console.log('Success connection');

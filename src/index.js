@@ -99,7 +99,8 @@ mainMenu.enter((ctx) => {
     return ctx.reply(`${state[ctx.from.id].name}, select action:`,
         Markup.inlineKeyboard([
             Markup.callbackButton(`Current Balance`,  `Balance`),
-            Markup.callbackButton(`Create Card`, `Card`)
+            Markup.callbackButton(`Create Card`, `Card`),
+            Markup.callbackButton(`Create Income`, `Income`)
         ]).extra());
 });
 mainMenu.on('callback_query', async (ctx) => {
@@ -124,6 +125,11 @@ mainMenu.on('callback_query', async (ctx) => {
             });
             break;
         case 'Card':
+            state[ctx.from.id].newevent = 'Expense Card';
+            ctx.scene.enter('subMenu');
+            break;
+        case 'Income':
+            state[ctx.from.id].newevent = 'Income';
             ctx.scene.enter('subMenu');
             break;
     }
@@ -131,7 +137,7 @@ mainMenu.on('callback_query', async (ctx) => {
 
 //sumMenu scene
 subMenu.enter((ctx) => {
-    return ctx.reply(`${state[ctx.from.id].name}, Create expense card:`,
+    return ctx.reply(`${state[ctx.from.id].name}, Create ${state[ctx.from.id].newevent}:`,
         Markup.inlineKeyboard([
             Markup.callbackButton(`for today`,  `Today`),
             Markup.callbackButton(`for date`, `Date`),
