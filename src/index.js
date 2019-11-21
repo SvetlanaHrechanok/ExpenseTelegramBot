@@ -45,11 +45,11 @@ stage.register(subMenu);
 stage.register(expenseCardDesc);
 stage.register(newExpenseCard);
 
-bot.start((ctx) => {
+bot.start(async (ctx) => {
     return ctx.reply(`Welcome, ${ctx.from.first_name}`)
         .then(() => ctx.scene.enter('userLogin'));
 });
-bot.command('exit', (ctx) => {
+bot.command('exit', async (ctx) => {
     return ctx.reply(`Good bay, ${ctx.from.first_name}`)
         .then(() => leave());
 });
@@ -76,7 +76,7 @@ userLogin.on('text', (ctx) => {
 userPassword.enter((ctx) => {
     ctx.reply(`Enter your password: `);
 });
-userPassword.on('text',async (ctx) => {
+userPassword.on('text', async (ctx) => {
     ctx.session.password = ctx.message.text;
     const userId = ctx.message.from.id;
     let query = `SELECT Id, Name, Email FROM Contact 
@@ -104,7 +104,7 @@ mainMenu.enter((ctx) => {
             Markup.callbackButton(`Create Card`, `Card`)
         ]).extra());
 });
-mainMenu.on('callback_query', (ctx) => {
+mainMenu.on('callback_query', async (ctx) => {
     let button = ctx.callbackQuery.data;
     switch (button) {
         case 'Balance':
@@ -140,7 +140,7 @@ subMenu.enter((ctx) => {
             Markup.callbackButton(`↩ Back`, `Back`)
         ]).extra());
 });
-subMenu.on('callback_query', (ctx) => {
+subMenu.on('callback_query', async (ctx) => {
     let button = ctx.callbackQuery.data;
     switch (button) {
         case 'Today':
@@ -180,7 +180,7 @@ expenseCardDesc.on('message', (ctx) => {
 newExpenseCard.enter((ctx) => {
     ctx.reply(`Enter amount for this expense card:`);
 });
-newExpenseCard.hears(/^\d*([.,]\d*)?$/, (ctx) => {
+newExpenseCard.hears(/^\d*([.,]\d*)?$/, async (ctx) => {
     let amount = parseFloat(ctx.message.text.replace(/,/, '.')).toFixed(2);
     let expenseCard = nforce.createSObject('ExpenseCard__c');
         expenseCard.set('CardDate__c', state[ctx.from.id].date);
@@ -193,7 +193,7 @@ newExpenseCard.hears(/^\d*([.,]\d*)?$/, (ctx) => {
             return ctx.reply(`Expense Card was created!\nDate: ${helper.formatDate(state[ctx.from.id].date)}, amount: ${amount}, description: ${state[ctx.from.id].description}`)
                 .then(ctx.scene.enter('mainMenu'));
         } else {
-            ctx.reply('Error: ' + err.message);
+            return ctx.reply('Error: ' + err.message);
         }
     });
 });
