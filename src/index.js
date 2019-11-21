@@ -55,7 +55,7 @@ bot.command('exit', async (ctx) => {
         .then(() => leave());
 });
 
-stage.command('start', (ctx) => {
+stage.command('start', async (ctx) => {
     leave()
         .then(() => ctx.scene.enter('userLogin'));
 });
@@ -65,7 +65,7 @@ bot.catch((err, ctx) => {
 });
 
 //userLogin scene
-userLogin.enter((ctx) => {
+userLogin.enter(async (ctx) => {
     return ctx.reply(`Enter your login: `);
 });
 userLogin.on('text', (ctx) => {
@@ -97,7 +97,7 @@ userPassword.on('text', async (ctx) => {
 });
 
 //mainMenu scene
-mainMenu.enter((ctx) => {
+mainMenu.enter(async (ctx) => {
     return ctx.reply(`${state[ctx.from.id].name}, select action:`,
         Markup.inlineKeyboard([
             Markup.callbackButton(`Current Balance`,  `Balance`),
@@ -138,7 +138,7 @@ mainMenu.on('callback_query', async (ctx) => {
 });
 
 //sumMenu scene
-subMenu.enter((ctx) => {
+subMenu.enter(async (ctx) => {
     return ctx.reply(`${state[ctx.from.id].name}, Create ${state[ctx.from.id].newevent}:`,
         Markup.inlineKeyboard([
             Markup.callbackButton(`for today`,  `Today`),
@@ -146,7 +146,7 @@ subMenu.enter((ctx) => {
             Markup.callbackButton(`↩ Back`, `Back`)
         ]).extra());
 });
-subMenu.on('callback_query', (ctx) => {
+subMenu.on('callback_query', async (ctx) => {
     let button = ctx.callbackQuery.data;
     switch (button) {
         case 'Today':
@@ -174,7 +174,7 @@ subMenu.on('callback_query', (ctx) => {
 });
 
 //expenseCardDesc scene
-expenseCardDesc.enter((ctx) => {
+expenseCardDesc.enter(async (ctx) => {
     return ctx.reply(`Enter description for this expense card:`);
 });
 expenseCardDesc.on('message', (ctx) => {
@@ -183,7 +183,7 @@ expenseCardDesc.on('message', (ctx) => {
 });
 
 //newExpenseCard scene
-newExpenseCard.enter((ctx) => {
+newExpenseCard.enter(async (ctx) => {
     return ctx.reply(`Enter amount for this expense card:`);
 });
 newExpenseCard.hears(/^\d*([.,]\d*)?$/, async (ctx) => {
@@ -205,12 +205,12 @@ newExpenseCard.hears(/^\d*([.,]\d*)?$/, async (ctx) => {
         }
     });
 });
-newExpenseCard.on('message', (ctx) => {
+newExpenseCard.on('message', async (ctx) => {
     return ctx.reply(`Enter number for amount:`);
 });
 
 //newIncome scene
-newIncome.enter((ctx) => {
+newIncome.enter( async (ctx) => {
     return ctx.reply(`Enter balance:`);
 });
 newIncome.hears(/^\d*([.,]\d*)?$/, async (ctx) => {
@@ -256,7 +256,7 @@ newIncome.hears(/^\d*([.,]\d*)?$/, async (ctx) => {
         }
     });
 });
-newIncome.on('message', (ctx) => {
+newIncome.on('message', async (ctx) => {
     return ctx.reply(`Enter number for balance:`);
 });
 
