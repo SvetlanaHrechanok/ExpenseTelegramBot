@@ -17,8 +17,6 @@ const subMenu = new Scene('subMenu');
 const expenseCardDesc = new Scene('expenseCardDesc');
 const newExpenseCard = new Scene('newExpenseCard');
 const newIncome = new Scene('newIncome');
-//bot
-const bot = new Telegraf(config.bot.TOKEN, {webhookReply: false});
 
 let port = process.env.PORT || config.http || config.https,
     state = {},
@@ -32,11 +30,6 @@ conectOrgSF.authenticate({ username: config.salesforce.SFUSER, password: config.
     }
 });
 
-bot.telegram.setWebhook(`${config.heroku.URL}bot${config.bot.TOKEN}`);
-bot.startWebhook(`/bot${config.bot.TOKEN}`, null, port);
-bot.use(session());
-bot.use(stage.middleware());
-
 // Create scene manager
 stage.register(userLogin);
 stage.register(userPassword);
@@ -46,19 +39,6 @@ stage.register(expenseCardDesc);
 stage.register(newExpenseCard);
 stage.register(newIncome);
 
-bot.start(async (ctx) => {
-    return ctx.reply(`Welcome, ${ctx.from.first_name}`)
-        .then(() => ctx.scene.enter('userLogin'));
-});
-bot.command('exit', async (ctx) => {
-    return ctx.reply(`Good bay, ${ctx.from.first_name}`)
-        .then(() => leave());
-});
-
-bot.catch((err, ctx) => {
-    console.log(`Ooops, ecountered an error for ${ctx.updateType}`, err)
-});
-
 stage.command('start', async (ctx) => {
     leave()
         .then(() => ctx.scene.enter('userLogin'));
@@ -67,6 +47,25 @@ stage.command('start', async (ctx) => {
 stage.command('exit', async (ctx) => {
     return ctx.reply(`Good bay, ${ctx.from.first_name}`)
         .then(() => leave());
+});
+
+//bot
+const bot = new Telegraf(config.bot.TOKEN, {webhookReply: false});
+
+bot.telegram.setWebhook(`${config.heroku.URL}bot${config.bot.TOKEN}`);
+bot.startWebhook(`/bot${config.bot.TOKEN}`, null, port);
+bot.use(session());
+bot.use(stage.middleware());
+bot.start(async (ctx) => {
+    return ctx.reply(`Welcome, ${ctx.from.first_name}`)
+        .then(() => ctx.scene.enter('userLogin'));
+});
+bot.command('exit', async (ctx) => {
+    return ctx.reply(`Good bay, ${ctx.from.first_name}`)
+        .then(() => leave());
+});
+bot.catch((err, ctx) => {
+    console.log(`Ooops, ecountered an error for ${ctx.updateType}`, err)
 });
 
 //userLogin scene
