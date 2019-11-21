@@ -30,44 +30,6 @@ conectOrgSF.authenticate({ username: config.salesforce.SFUSER, password: config.
     }
 });
 
-// Create scene manager
-stage.register(userLogin);
-stage.register(userPassword);
-stage.register(mainMenu);
-stage.register(subMenu);
-stage.register(expenseCardDesc);
-stage.register(newExpenseCard);
-stage.register(newIncome);
-
-stage.command('start', async (ctx) => {
-    leave()
-        .then(() => ctx.scene.enter('userLogin'));
-});
-
-stage.command('exit', async (ctx) => {
-    return ctx.reply(`Good bay, ${ctx.from.first_name}`)
-        .then(() => leave());
-});
-
-//bot
-const bot = new Telegraf(config.bot.TOKEN, {webhookReply: false});
-
-bot.telegram.setWebhook(`${config.heroku.URL}bot${config.bot.TOKEN}`);
-bot.startWebhook(`/bot${config.bot.TOKEN}`, null, port);
-bot.use(session());
-bot.use(stage.middleware());
-bot.start(async (ctx) => {
-    return ctx.reply(`Welcome, ${ctx.from.first_name}`)
-        .then(() => ctx.scene.enter('userLogin'));
-});
-bot.command('exit', async (ctx) => {
-    return ctx.reply(`Good bay, ${ctx.from.first_name}`)
-        .then(() => leave());
-});
-bot.catch((err, ctx) => {
-    console.log(`Ooops, ecountered an error for ${ctx.updateType}`, err)
-});
-
 //userLogin scene
 userLogin.enter(async (ctx) => {
     return ctx.reply(`Enter your login: `);
@@ -264,6 +226,43 @@ newIncome.on('message', async (ctx) => {
     return ctx.reply(`Enter number for balance:`);
 });
 
+// Create scene manager
+stage.register(userLogin);
+stage.register(userPassword);
+stage.register(mainMenu);
+stage.register(subMenu);
+stage.register(expenseCardDesc);
+stage.register(newExpenseCard);
+stage.register(newIncome);
+
+stage.command('start', async (ctx) => {
+    leave()
+        .then(() => ctx.scene.enter('userLogin'));
+});
+
+stage.command('exit', async (ctx) => {
+    return ctx.reply(`Good bay, ${ctx.from.first_name}`)
+        .then(() => leave());
+});
+
+//bot
+const bot = new Telegraf(config.bot.TOKEN, {webhookReply: false});
+
+bot.telegram.setWebhook(`${config.heroku.URL}bot${config.bot.TOKEN}`);
+bot.startWebhook(`/bot${config.bot.TOKEN}`, null, port);
+bot.use(session());
+bot.use(stage.middleware());
+bot.start(async (ctx) => {
+    return ctx.reply(`Welcome, ${ctx.from.first_name}`)
+        .then(() => ctx.scene.enter('userLogin'));
+});
+bot.command('exit', async (ctx) => {
+    return ctx.reply(`Good bay, ${ctx.from.first_name}`)
+        .then(() => leave());
+});
+bot.catch((err, ctx) => {
+    console.log(`Ooops, ecountered an error for ${ctx.updateType}`, err)
+});
 bot.help((ctx) => ctx.reply('Send me a sticker'));
 bot.on('sticker', (ctx) => ctx.reply('👍'));
 bot.hears('hi', (ctx) => ctx.reply('Hey there'));
