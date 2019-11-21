@@ -235,9 +235,9 @@ stage.register(expenseCardDesc);
 stage.register(newExpenseCard);
 stage.register(newIncome);
 
-stage.command('start', async (ctx) => {
-    leave()
-        .then(() => ctx.scene.enter('userLogin'));
+stage.command('start', (ctx) => {
+    leave();
+    ctx.scene.enter('userLogin');
 });
 
 stage.command('exit', async (ctx) => {
