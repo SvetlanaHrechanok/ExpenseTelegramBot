@@ -17,7 +17,7 @@ const subMenu = new Scene('subMenu');
 const expenseCardDesc = new Scene('expenseCardDesc');
 const newExpenseCard = new Scene('newExpenseCard');
 //bot
-const bot = new Telegraf(config.bot.TOKEN, { webhookReply: false });
+const bot = new Telegraf(config.bot.TOKEN);
 
 let port = config.http || config.https,
     state = {},
