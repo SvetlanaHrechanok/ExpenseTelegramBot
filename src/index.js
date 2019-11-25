@@ -114,7 +114,7 @@ const calendar = new Calendar(bot, {
     maxDate: new Date()
 });
 calendar.setDateListener((ctx, date) => {
-    state[ctx.from.id].date = date;
+    state[ctx.from.id].date = new Date(date);
     ctx.reply(`${date}`);
 });
 
@@ -127,7 +127,6 @@ subMenu.enter(async (ctx) => {
             Markup.callbackButton(`↩ Back`, `Back`)
         ]).extra());
 });
-
 subMenu.on('callback_query', async (ctx) => {
     let button = ctx.callbackQuery.data;
     switch (button) {
@@ -253,7 +252,6 @@ stage.command('exit', async (ctx) => {
 });
 
 //bot
-
 bot.telegram.setWebhook(`${config.heroku.URL}bot${config.bot.TOKEN}`);
 bot.startWebhook(`/bot${config.bot.TOKEN}`, null, port);
 bot.use(session());
