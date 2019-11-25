@@ -151,44 +151,6 @@ newIncome.on('message', async (ctx) => {
     return ctx.reply(`Enter number for balance:`);
 });
 
-//sumMenu scene
-subMenu.enter(async (ctx) => {
-    return ctx.reply(`${state[ctx.from.id].name}, Create ${state[ctx.from.id].newevent}:`,
-        Markup.inlineKeyboard([
-            Markup.callbackButton(`for today`,  `Today`),
-            Markup.callbackButton(`for date`, `Date`),
-            Markup.callbackButton(`↩ Back`, `Back`)
-        ]).extra());
-});
-
-subMenu.on('callback_query', async (ctx) => {
-    let button = ctx.callbackQuery.data;
-    switch (button) {
-        case 'Today':
-            state[ctx.from.id].date = new Date();
-            state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
-            break;
-        case 'Date':
-            //Calendar
-            const calendar = new Calendar(bot, {
-                startWeekDay: 0,
-                weekDayNames: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
-                monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-                minDate: new Date(2017, 0, 1),
-                maxDate: new Date()
-            });
-            calendar.setDateListener((ctx, date) => {
-                state[ctx.from.id].date = date;
-                state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
-            });
-            return ctx.reply(`Select date from the calendar:`, calendar.getCalendar());
-            break;
-        case 'Back':
-            ctx.scene.enter('mainMenu');
-            break;
-    }
-});
-
 //mainMenu scene
 mainMenu.enter(async (ctx) => {
     return ctx.reply(`${state[ctx.from.id].name}, select action:`,
@@ -226,6 +188,45 @@ mainMenu.on('callback_query', async (ctx) => {
         case 'Income':
             state[ctx.from.id].newevent = 'Income';
             ctx.scene.enter('subMenu');
+            break;
+    }
+});
+
+//Calendar
+const calendar = new Calendar(bot, {
+    startWeekDay: 0,
+    weekDayNames: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+    monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    minDate: new Date(2017, 0, 1),
+    maxDate: new Date()
+});
+calendar.setDateListener((ctx, date) => {
+    state[ctx.from.id].date = date;
+    state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
+});
+
+//sumMenu scene
+subMenu.enter(async (ctx) => {
+    return ctx.reply(`${state[ctx.from.id].name}, Create ${state[ctx.from.id].newevent}:`,
+        Markup.inlineKeyboard([
+            Markup.callbackButton(`for today`,  `Today`),
+            Markup.callbackButton(`for date`, `Date`),
+            Markup.callbackButton(`↩ Back`, `Back`)
+        ]).extra());
+});
+
+subMenu.on('callback_query', async (ctx) => {
+    let button = ctx.callbackQuery.data;
+    switch (button) {
+        case 'Today':
+            state[ctx.from.id].date = new Date();
+            state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
+            break;
+        case 'Date':
+            return ctx.reply(`Select date from the calendar:`, calendar.getCalendar());
+            break;
+        case 'Back':
+            ctx.scene.enter('mainMenu');
             break;
     }
 });
