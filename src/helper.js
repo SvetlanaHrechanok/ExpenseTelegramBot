@@ -39,6 +39,7 @@ module.exports = {
         });
     },
     getBalanceFromDB(id, year) {
+        console.log(`${id}  ${year}`);
         let query = `SELECT Id, MonthDate__c, SpentAmount__c, Balance__c, Keeper__c 
                             FROM MonthlyExpense__c 
                             WHERE CALENDAR_YEAR(MonthDate__c) = ${year} AND Keeper__c ='${id}'`;
