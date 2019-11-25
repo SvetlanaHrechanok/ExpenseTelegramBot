@@ -1,6 +1,6 @@
 const config = require('./config');
 const nforce = require('nforce');
-const http = require('http');
+const https = require('https');
 
 //nforce setup to connect Salesforce
 const org = nforce.createConnection({
@@ -25,14 +25,32 @@ module.exports = {
 
         return yyyy + '-' + mm + '-' + dd;
     },
-    getHttp() {
-        http.get(`https://stormy-wave-90920.herokuapp.com/`);
-        org.authenticate({ username: config.salesforce.SFUSER, password: config.salesforce.SFPASS, securityToken: config.salesforce.SECURITY_TOKEN }, function(err, resp){
-            if(!err) {
-                console.log('Success connection');
-            } else {
-                console.log('Error: ' + err.message);
-            }
+    getHttps() {
+        https.get(config.heroku, (res) => {
+            org.authenticate({ username: config.salesforce.SFUSER, password: config.salesforce.SFPASS, securityToken: config.salesforce.SECURITY_TOKEN }, function(err, resp){
+                if(!err) {
+                    console.log('Success connection');
+                } else {
+                    console.log('Error: ' + err.message);
+                }
+            });
+        }).on('error', (e) => {
+            console.error(e);
         });
+    },
+    getBalanceFromDB(id, year) {
+        let query = `SELECT Id, MonthDate__c, SpentAmount__c, Balance__c, Keeper__c 
+                            FROM MonthlyExpense__c 
+                            WHERE CALENDAR_YEAR(MonthDate__c) = ${year} AND Keeper__c ='${id}'`;
+        let income = 0;
+        let amount = 0;
+        org.query({ query: query }, async (err, resp) => {
+            let listMonthlyExpenses = JSON.parse(JSON.stringify(resp.records));
+            listMonthlyExpenses.forEach(function(monthlyExpense) {
+                income += monthlyExpense.balance__c;
+                amount += monthlyExpense.spentamount__c;
+            });
+        });
+        return income - amount;
     }
 }

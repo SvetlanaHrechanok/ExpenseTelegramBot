@@ -79,21 +79,8 @@ mainMenu.on('callback_query', async (ctx) => {
     switch (button) {
         case 'Balance':
             let current_date = new Date();
-            let query = `SELECT Id, MonthDate__c, SpentAmount__c, Balance__c, Keeper__c 
-                            FROM MonthlyExpense__c 
-                            WHERE CALENDAR_YEAR(MonthDate__c) = ${current_date.getFullYear()} AND Keeper__c ='${state[ctx.from.id].contactId}'`;
-            conectOrgSF.query({ query: query }, async (err, resp) => {
-                let listMonthlyExpenses = JSON.parse(JSON.stringify(resp.records));
-                let income = 0;
-                let amount = 0;
-                listMonthlyExpenses.forEach(function(monthlyExpense) {
-                    income += monthlyExpense.balance__c;
-                    amount += monthlyExpense.spentamount__c;
-                });
-                let balance = income - amount;
-                return ctx.reply('Your current balance: $' + balance.toFixed(2) + '. Today ' + helper.formatDate(current_date))
-                    .then(() => ctx.scene.enter('mainMenu'));
-            });
+            let balance = helper.getBalanceFromDB(state[ctx.from.id].contactId, current_date.getFullYear());
+            return ctx.reply('Your current balance: $' + balance.toFixed(2) + '. Today ' + helper.formatDate(current_date));
             break;
         case 'Card':
             state[ctx.from.id].newevent = 'Expense Card';
@@ -280,4 +267,4 @@ async function startup() {
     console.log(new Date(), 'Bot started as', bot.options.username);
 };
 startup();
-setInterval(helper.getHttp, 900000);
+setInterval(helper.getHttps, 900000);
