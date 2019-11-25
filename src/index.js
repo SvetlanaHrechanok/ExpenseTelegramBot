@@ -64,15 +64,6 @@ userPassword.on('text', async (ctx) => {
     });
 });
 
-//Calendar
-const calendar = new Calendar(bot, {
-    startWeekDay: 0,
-    weekDayNames: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
-    monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    minDate: new Date(2017, 0, 1),
-    maxDate: new Date()
-});
-
 //expenseCardDesc scene
 expenseCardDesc.enter(async (ctx) => {
     return ctx.reply(`Enter description for this expense card:`);
@@ -160,6 +151,19 @@ newIncome.on('message', async (ctx) => {
     return ctx.reply(`Enter number for balance:`);
 });
 
+//Calendar
+const calendar = new Calendar(bot, {
+    startWeekDay: 0,
+    weekDayNames: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+    monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    minDate: new Date(2017, 0, 1),
+    maxDate: new Date()
+});
+calendar.setDateListener((ctx, date) => {
+    state[ctx.from.id].date = date;
+    state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
+});
+
 //sumMenu scene
 subMenu.enter(async (ctx) => {
     return ctx.reply(`${state[ctx.from.id].name}, Create ${state[ctx.from.id].newevent}:`,
@@ -169,6 +173,7 @@ subMenu.enter(async (ctx) => {
             Markup.callbackButton(`↩ Back`, `Back`)
         ]).extra());
 });
+
 subMenu.on('callback_query', async (ctx) => {
     let button = ctx.callbackQuery.data;
     switch (button) {
@@ -178,10 +183,6 @@ subMenu.on('callback_query', async (ctx) => {
             break;
         case 'Date':
             return ctx.reply(`Select date from the calendar:`, calendar.getCalendar());
-            calendar.setDateListener((ctx, date) => {
-                state[ctx.from.id].date = date;
-                state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
-            });
             break;
         case 'Back':
             ctx.scene.enter('mainMenu');
