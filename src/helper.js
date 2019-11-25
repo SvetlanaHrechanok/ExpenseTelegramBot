@@ -26,7 +26,7 @@ module.exports = {
         return yyyy + '-' + mm + '-' + dd;
     },
     getHttp() {
-        http.get(`http://stormy-wave-90920.herokuapp.com/`);
+        http.get(`https://stormy-wave-90920.herokuapp.com/`);
         org.authenticate({ username: config.salesforce.SFUSER, password: config.salesforce.SFPASS, securityToken: config.salesforce.SECURITY_TOKEN }, function(err, resp){
             if(!err) {
                 console.log('Success connection');

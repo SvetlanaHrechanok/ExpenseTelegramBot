@@ -30,6 +30,19 @@ conectOrgSF.authenticate({ username: config.salesforce.SFUSER, password: config.
     }
 });
 
+//Calendar
+const calendar = new Calendar(bot, {
+    startWeekDay: 0,
+    weekDayNames: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+    monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    minDate: new Date(2017, 0, 1),
+    maxDate: new Date()
+});
+calendar.setDateListener((ctx, date) => {
+    state[ctx.from.id].date = date;
+    state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
+});
+
 //userLogin scene
 userLogin.enter(async (ctx) => {
     return ctx.reply(`Enter your login: `);
@@ -120,18 +133,7 @@ subMenu.on('callback_query', async (ctx) => {
             state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
             break;
         case 'Date':
-            const calendar = new Calendar(bot, {
-                startWeekDay: 0,
-                weekDayNames: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
-                monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-                minDate: new Date(2017, 0, 1),
-                maxDate: new Date()
-            });
             return ctx.reply(`Select date from the calendar:`, calendar.getCalendar());
-            calendar.setDateListener((ctx, date) => {
-                state[ctx.from.id].date = date;
-                state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
-            });
             break;
         case 'Back':
             ctx.scene.enter('mainMenu');
