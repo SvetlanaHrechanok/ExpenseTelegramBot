@@ -115,7 +115,9 @@ const calendar = new Calendar(bot, {
 });
 calendar.setDateListener((ctx, date) => {
     state[ctx.from.id].date = new Date(date);
-    ctx.reply(`${date}`);
+    ctx.reply(`${date}`)
+        .then(() => ctx.reply(`${state[ctx.from.id].newevent}`))
+        .then(() => state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome'));;
 });
 
 //sumMenu scene
@@ -135,9 +137,7 @@ subMenu.on('callback_query', async (ctx) => {
             state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
             break;
         case 'Date':
-            return ctx.reply(`Select date from the calendar:`, calendar.getCalendar())
-                .then(() => ctx.reply(`${state[ctx.from.id].newevent}`))
-                .then(() => state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome'));
+            return ctx.reply(`Select date from the calendar:`, calendar.getCalendar());
             break;
         case 'Back':
             ctx.scene.enter('mainMenu');
