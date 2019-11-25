@@ -79,8 +79,20 @@ mainMenu.on('callback_query', async (ctx) => {
     switch (button) {
         case 'Balance':
             let current_date = new Date();
-            let balance = helper.getBalanceFromDB(state[ctx.from.id].contactId, current_date.getFullYear());
-            return ctx.reply('Your current balance: $' + balance.toFixed(2) + '. Today ' + helper.formatDate(current_date));
+            let query = `SELECT Id, MonthDate__c, SpentAmount__c, Balance__c, Keeper__c 
+                            FROM MonthlyExpense__c 
+                            WHERE CALENDAR_YEAR(MonthDate__c) = ${current_date.getFullYear()} AND Keeper__c ='${state[ctx.from.id].contactId}'`;
+            conectOrgSF.query({ query: query }, async (err, resp) => {
+                let income = 0;
+                let amount = 0;
+                let listMonthlyExpenses = JSON.parse(JSON.stringify(resp.records));
+                listMonthlyExpenses.forEach(function(monthlyExpense) {
+                    income += monthlyExpense.balance__c;
+                    amount += monthlyExpense.spentamount__c;
+                });
+                return ctx.reply(`Your current balance: $ ${(income - amount).toFixed(2)}. Today ${helper.formatDate(current_date)}.`)
+                    .then(() => ctx.scene.enter('mainMenu'));
+            });
             break;
         case 'Card':
             state[ctx.from.id].newevent = 'Expense Card';
@@ -160,7 +172,7 @@ newExpenseCard.hears(/^\d*([.,]\d*)?$/, async (ctx) => {
     conectOrgSF.insert({sobject: expenseCard},async function(err, resp) {
         if (!err) {
             return ctx.reply(`Expense Card was created!\nDate: ${helper.formatDate(state[ctx.from.id].date)}, amount: ${amount}, description: ${state[ctx.from.id].description}`)
-                .then(ctx.scene.enter('mainMenu'));
+                .then(() => ctx.scene.enter('mainMenu'));
         } else {
             return ctx.reply('Error: ' + err.message);
         }
@@ -191,8 +203,8 @@ newIncome.hears(/^\d*([.,]\d*)?$/, async (ctx) => {
             });
             conectOrgSF.insert({sobject: monthlyExpense}, async function (err, resp) {
                 if (!err) {
-                    return ctx.reply(`Income was created!\nDate: ${helper.formatDate(state[ctx.from.id].date)}, balance: ${balance}`)
-                        .then(ctx.scene.enter('mainMenu'));
+                    return ctx.reply(`Income was created!`)
+                        .then(() => ctx.scene.enter('mainMenu'));
                 } else {
                     return ctx.reply('Error: ' + err.message);
                 }
@@ -208,8 +220,8 @@ newIncome.hears(/^\d*([.,]\d*)?$/, async (ctx) => {
             });
             conectOrgSF.update({sobject: monthlyExpense}, async function (err, resp) {
                 if (!err) {
-                    return ctx.reply(`Income was updated!\nBalance: ${newBalance}`)
-                        .then(ctx.scene.enter('mainMenu'));
+                    return ctx.reply(`Income was updated!`)
+                        .then(() => ctx.scene.enter('mainMenu'));
                 } else {
                     return ctx.reply('Error: ' + err.message);
                 }

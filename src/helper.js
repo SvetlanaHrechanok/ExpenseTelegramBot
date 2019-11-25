@@ -12,7 +12,6 @@ const org = nforce.createConnection({
 
 });
 
-
 module.exports = {
     conectOrg: org,
 
@@ -37,21 +36,5 @@ module.exports = {
         }).on('error', (e) => {
             console.error(e);
         });
-    },
-    getBalanceFromDB(id, year) {
-        console.log(`${id}  ${year}`);
-        let query = `SELECT Id, MonthDate__c, SpentAmount__c, Balance__c, Keeper__c 
-                            FROM MonthlyExpense__c 
-                            WHERE CALENDAR_YEAR(MonthDate__c) = ${year} AND Keeper__c ='${id}'`;
-        let income = 0;
-        let amount = 0;
-        org.query({ query: query }, async (err, resp) => {
-            let listMonthlyExpenses = JSON.parse(JSON.stringify(resp.records));
-            listMonthlyExpenses.forEach(function(monthlyExpense) {
-                income += monthlyExpense.balance__c;
-                amount += monthlyExpense.spentamount__c;
-            });
-        });
-        return income - amount;
     }
 }
