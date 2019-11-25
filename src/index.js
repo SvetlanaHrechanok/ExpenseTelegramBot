@@ -64,6 +64,87 @@ userPassword.on('text', async (ctx) => {
     });
 });
 
+//mainMenu scene
+mainMenu.enter(async (ctx) => {
+    return ctx.reply(`${state[ctx.from.id].name}, select action:`,
+        Markup.inlineKeyboard([
+            Markup.callbackButton(`Current Balance`,  `Balance`),
+            Markup.callbackButton(`Create Card`, `Card`),
+            Markup.callbackButton(`Create Income`, `Income`)
+        ]).extra());
+});
+mainMenu.on('callback_query', async (ctx) => {
+    let button = ctx.callbackQuery.data;
+    switch (button) {
+        case 'Balance':
+            let current_date = new Date();
+            let query = `SELECT Id, MonthDate__c, SpentAmount__c, Balance__c, Keeper__c 
+                            FROM MonthlyExpense__c 
+                            WHERE CALENDAR_YEAR(MonthDate__c) = ${current_date.getFullYear()} AND Keeper__c ='${state[ctx.from.id].contactId}'`;
+            conectOrgSF.query({ query: query }, async (err, resp) => {
+                let listMonthlyExpenses = JSON.parse(JSON.stringify(resp.records));
+                let income = 0;
+                let amount = 0;
+                listMonthlyExpenses.forEach(function(monthlyExpense) {
+                    income += monthlyExpense.balance__c;
+                    amount += monthlyExpense.spentamount__c;
+                });
+                let balance = income - amount;
+                return ctx.reply('Your current balance: $' + balance.toFixed(2) + '. Today ' + helper.formatDate(current_date))
+                    .then(() => ctx.scene.enter('mainMenu'));
+            });
+            break;
+        case 'Card':
+            state[ctx.from.id].newevent = 'Expense Card';
+            ctx.scene.enter('subMenu');
+            break;
+        case 'Income':
+            state[ctx.from.id].newevent = 'Income';
+            ctx.scene.enter('subMenu');
+            break;
+    }
+});
+
+//Calendar
+const calendar = new Calendar(bot, {
+    startWeekDay: 0,
+    weekDayNames: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+    monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    minDate: new Date(2017, 0, 1),
+    maxDate: new Date()
+});
+calendar.setDateListener((ctx, date) => {
+    state[ctx.from.id].date = date;
+    ctx.reply(`${date}`);
+});
+
+//sumMenu scene
+subMenu.enter(async (ctx) => {
+    return ctx.reply(`${state[ctx.from.id].name}, Create ${state[ctx.from.id].newevent}:`,
+        Markup.inlineKeyboard([
+            Markup.callbackButton(`for today`,  `Today`),
+            Markup.callbackButton(`for date`, `Date`),
+            Markup.callbackButton(`↩ Back`, `Back`)
+        ]).extra());
+});
+
+subMenu.on('callback_query', async (ctx) => {
+    let button = ctx.callbackQuery.data;
+    switch (button) {
+        case 'Today':
+            state[ctx.from.id].date = new Date();
+            state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
+            break;
+        case 'Date':
+            return ctx.reply(`Select date from the calendar:`, calendar.getCalendar())
+                .then(() => state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome'));
+            break;
+        case 'Back':
+            ctx.scene.enter('mainMenu');
+            break;
+    }
+});
+
 //expenseCardDesc scene
 expenseCardDesc.enter(async (ctx) => {
     return ctx.reply(`Enter description for this expense card:`);
@@ -149,87 +230,6 @@ newIncome.hears(/^\d*([.,]\d*)?$/, async (ctx) => {
 });
 newIncome.on('message', async (ctx) => {
     return ctx.reply(`Enter number for balance:`);
-});
-
-//mainMenu scene
-mainMenu.enter(async (ctx) => {
-    return ctx.reply(`${state[ctx.from.id].name}, select action:`,
-        Markup.inlineKeyboard([
-            Markup.callbackButton(`Current Balance`,  `Balance`),
-            Markup.callbackButton(`Create Card`, `Card`),
-            Markup.callbackButton(`Create Income`, `Income`)
-        ]).extra());
-});
-mainMenu.on('callback_query', async (ctx) => {
-    let button = ctx.callbackQuery.data;
-    switch (button) {
-        case 'Balance':
-            let current_date = new Date();
-            let query = `SELECT Id, MonthDate__c, SpentAmount__c, Balance__c, Keeper__c 
-                            FROM MonthlyExpense__c 
-                            WHERE CALENDAR_YEAR(MonthDate__c) = ${current_date.getFullYear()} AND Keeper__c ='${state[ctx.from.id].contactId}'`;
-            conectOrgSF.query({ query: query }, async (err, resp) => {
-                let listMonthlyExpenses = JSON.parse(JSON.stringify(resp.records));
-                let income = 0;
-                let amount = 0;
-                listMonthlyExpenses.forEach(function(monthlyExpense) {
-                    income += monthlyExpense.balance__c;
-                    amount += monthlyExpense.spentamount__c;
-                });
-                let balance = income - amount;
-                return ctx.reply('Your current balance: $' + balance.toFixed(2) + '. Today ' + helper.formatDate(current_date))
-                    .then(() => ctx.scene.enter('mainMenu'));
-            });
-            break;
-        case 'Card':
-            state[ctx.from.id].newevent = 'Expense Card';
-            ctx.scene.enter('subMenu');
-            break;
-        case 'Income':
-            state[ctx.from.id].newevent = 'Income';
-            ctx.scene.enter('subMenu');
-            break;
-    }
-});
-
-//Calendar
-const calendar = new Calendar(bot, {
-    startWeekDay: 0,
-    weekDayNames: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
-    monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    minDate: new Date(2017, 0, 1),
-    maxDate: new Date()
-});
-calendar.setDateListener((ctx, date) => {
-    state[ctx.from.id].date = date;
-    ctx.reply(`${date}`);
-});
-
-//sumMenu scene
-subMenu.enter(async (ctx) => {
-    return ctx.reply(`${state[ctx.from.id].name}, Create ${state[ctx.from.id].newevent}:`,
-        Markup.inlineKeyboard([
-            Markup.callbackButton(`for today`,  `Today`),
-            Markup.callbackButton(`for date`, `Date`),
-            Markup.callbackButton(`↩ Back`, `Back`)
-        ]).extra());
-});
-
-subMenu.on('callback_query', async (ctx) => {
-    let button = ctx.callbackQuery.data;
-    switch (button) {
-        case 'Today':
-            state[ctx.from.id].date = new Date();
-            state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
-            break;
-        case 'Date':
-            return ctx.reply(`Select date from the calendar:`, calendar.getCalendar())
-                    .then(() => state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome'));
-            break;
-        case 'Back':
-            ctx.scene.enter('mainMenu');
-            break;
-    }
 });
 
 // Create scene manager
