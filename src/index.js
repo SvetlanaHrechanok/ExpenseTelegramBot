@@ -151,19 +151,6 @@ newIncome.on('message', async (ctx) => {
     return ctx.reply(`Enter number for balance:`);
 });
 
-//Calendar
-const calendar = new Calendar(bot, {
-    startWeekDay: 0,
-    weekDayNames: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
-    monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    minDate: new Date(2017, 0, 1),
-    maxDate: new Date()
-});
-calendar.setDateListener((ctx, date) => {
-    state[ctx.from.id].date = date;
-    state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
-});
-
 //sumMenu scene
 subMenu.enter(async (ctx) => {
     return ctx.reply(`${state[ctx.from.id].name}, Create ${state[ctx.from.id].newevent}:`,
@@ -182,6 +169,18 @@ subMenu.on('callback_query', async (ctx) => {
             state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
             break;
         case 'Date':
+            //Calendar
+            const calendar = new Calendar(bot, {
+                startWeekDay: 0,
+                weekDayNames: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+                monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+                minDate: new Date(2017, 0, 1),
+                maxDate: new Date()
+            });
+            calendar.setDateListener((ctx, date) => {
+                state[ctx.from.id].date = date;
+                state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
+            });
             return ctx.reply(`Select date from the calendar:`, calendar.getCalendar());
             break;
         case 'Back':
