@@ -115,7 +115,7 @@ const calendar = new Calendar(bot, {
 });
 calendar.setDateListener(async (ctx, date) => {
     state[ctx.from.id].date = new Date(date);
-    state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
+    ctx.scene.enter('expenseCardDesc');
 });
 
 //sumMenu scene
