@@ -116,8 +116,10 @@ const calendar = new Calendar(bot, {
 calendar.setDateListener((ctx, date) => {
     state[ctx.from.id].date = new Date(date);
     ctx.reply(`${date}`)
-        .then(() => ctx.reply(`${state[ctx.from.id].newevent}`))
-        .then(() => state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome'));;
+        .then((ctx) => {
+            ctx.reply(`${state[ctx.from.id].newevent}`);
+            state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome')
+        });
 });
 
 //sumMenu scene
