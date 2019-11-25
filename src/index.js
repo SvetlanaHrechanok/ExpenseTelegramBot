@@ -18,6 +18,8 @@ const expenseCardDesc = new Scene('expenseCardDesc');
 const newExpenseCard = new Scene('newExpenseCard');
 const newIncome = new Scene('newIncome');
 
+const bot = new Telegraf(config.bot.TOKEN, {webhookReply: false});
+
 let port = process.env.PORT || config.http || config.https,
     state = {},
     conectOrgSF = helper.conectOrg;
@@ -28,19 +30,6 @@ conectOrgSF.authenticate({ username: config.salesforce.SFUSER, password: config.
     } else {
         console.log('Error: ' + err.message);
     }
-});
-
-//Calendar
-const calendar = new Calendar(bot, {
-    startWeekDay: 0,
-    weekDayNames: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
-    monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    minDate: new Date(2017, 0, 1),
-    maxDate: new Date()
-});
-calendar.setDateListener((ctx, date) => {
-    state[ctx.from.id].date = date;
-    state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
 });
 
 //userLogin scene
@@ -73,6 +62,19 @@ userPassword.on('text', async (ctx) => {
                 .then(() => ctx.scene.enter('userLogin'));
         }
     });
+});
+
+//Calendar
+const calendar = new Calendar(bot, {
+    startWeekDay: 0,
+    weekDayNames: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+    monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    minDate: new Date(2017, 0, 1),
+    maxDate: new Date()
+});
+calendar.setDateListener((ctx, date) => {
+    state[ctx.from.id].date = date;
+    state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
 });
 
 //mainMenu scene
@@ -249,7 +251,6 @@ stage.command('exit', async (ctx) => {
 });
 
 //bot
-const bot = new Telegraf(config.bot.TOKEN, {webhookReply: false});
 
 bot.telegram.setWebhook(`${config.heroku.URL}bot${config.bot.TOKEN}`);
 bot.startWebhook(`/bot${config.bot.TOKEN}`, null, port);
