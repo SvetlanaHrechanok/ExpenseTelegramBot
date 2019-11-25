@@ -72,10 +72,6 @@ const calendar = new Calendar(bot, {
     minDate: new Date(2017, 0, 1),
     maxDate: new Date()
 });
-calendar.setDateListener((ctx, date) => {
-    state[ctx.from.id].date = date;
-    state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
-});
 
 //expenseCardDesc scene
 expenseCardDesc.enter(async (ctx) => {
@@ -182,6 +178,10 @@ subMenu.on('callback_query', async (ctx) => {
             break;
         case 'Date':
             return ctx.reply(`Select date from the calendar:`, calendar.getCalendar());
+            calendar.setDateListener((ctx, date) => {
+                state[ctx.from.id].date = date;
+                state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
+            });
             break;
         case 'Back':
             ctx.scene.enter('mainMenu');
