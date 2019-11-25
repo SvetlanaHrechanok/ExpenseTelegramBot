@@ -113,10 +113,7 @@ const calendar = new Calendar(bot, {
     minDate: new Date(2017, 0, 1),
     maxDate: new Date()
 });
-calendar.setDateListener(async (ctx, date) => {
-    state[ctx.from.id].date = new Date(date);
-    ctx.scene.enter('expenseCardDesc');
-});
+
 
 //sumMenu scene
 subMenu.enter(async (ctx) => {
@@ -135,6 +132,10 @@ subMenu.on('callback_query', async (ctx) => {
             state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
             break;
         case 'Date':
+            calendar.setDateListener(async (ctx, date) => {
+                state[ctx.from.id].date = new Date(date);
+                state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
+            });
             return ctx.reply(`Select date from the calendar:`, calendar.getCalendar());
             break;
         case 'Back':
