@@ -113,12 +113,12 @@ const calendar = new Calendar(bot, {
     minDate: new Date(2017, 0, 1),
     maxDate: new Date()
 });
-calendar.setDateListener((ctx, date) => {
+calendar.setDateListener(async (ctx, date) => {
     state[ctx.from.id].date = new Date(date);
-    ctx.reply(`${date}`)
-        .then((ctx) => {
-            ctx.reply(`${state[ctx.from.id].newevent}`);
-            state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome')
+    return ctx.reply(`${date}`)
+        .then(() => {
+            return ctx.reply(`${state[ctx.from.id].newevent}`)
+                .then(() => state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome'));
         });
 });
 
