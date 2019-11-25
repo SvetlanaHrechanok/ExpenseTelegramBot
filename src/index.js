@@ -14,6 +14,7 @@ const userLogin = new Scene('userLogin');
 const userPassword = new Scene('userPassword');
 const mainMenu = new Scene('mainMenu');
 const subMenu = new Scene('subMenu');
+const forDate = new Scene('forDate');
 const expenseCardDesc = new Scene('expenseCardDesc');
 const newExpenseCard = new Scene('newExpenseCard');
 const newIncome = new Scene('newIncome');
@@ -105,6 +106,22 @@ mainMenu.on('callback_query', async (ctx) => {
     }
 });
 
+//Calendar
+forDate.enter(async (ctx) => {
+    const calendar = new Calendar(bot, {
+        startWeekDay: 0,
+        weekDayNames: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+        monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        minDate: new Date(2017, 0, 1),
+        maxDate: new Date()
+    });
+    calendar.setDateListener(async (ctx, date) => {
+        state[ctx.from.id].date = new Date(date);
+        state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
+    });
+    return ctx.reply(`Select date from the calendar:`, calendar.getCalendar());
+});
+
 //sumMenu scene
 subMenu.enter(async (ctx) => {
     return ctx.reply(`${state[ctx.from.id].name}, Create ${state[ctx.from.id].newevent}:`,
@@ -122,7 +139,7 @@ subMenu.on('callback_query', async (ctx) => {
             state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
             break;
         case 'Date':
-            return ctx.reply(`Select date from the calendar:`, calendar.getCalendar());
+            ctx.scene.enter('forDate');
             break;
         case 'Back':
             ctx.scene.enter('mainMenu');
@@ -222,6 +239,7 @@ stage.register(userLogin);
 stage.register(userPassword);
 stage.register(mainMenu);
 stage.register(subMenu);
+stage.register(forDate);
 stage.register(expenseCardDesc);
 stage.register(newExpenseCard);
 stage.register(newIncome);
@@ -235,19 +253,6 @@ stage.command('start', async (ctx) => {
 stage.command('exit', async (ctx) => {
     return ctx.reply(`Good bay, ${ctx.from.first_name}`)
         .then(() => leave());
-});
-
-//Calendar
-const calendar = new Calendar(bot, {
-    startWeekDay: 0,
-    weekDayNames: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
-    monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    minDate: new Date(2017, 0, 1),
-    maxDate: new Date()
-});
-calendar.setDateListener(async (ctx, date) => {
-    state[ctx.from.id].date = new Date(date);
-    state[ctx.from.id].newevent == 'Expense Card' ? ctx.scene.enter('expenseCardDesc') : ctx.scene.enter('newIncome');
 });
 
 //bot
